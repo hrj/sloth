@@ -24,3 +24,5 @@ From the release page, download the zip file and extract it somewhere on your fi
 
 I found an extension called Native Lazy Tabs [here](https://www.crx4chrome.com/extensions/ianooggapgmmmfojacmhnfaheidgpbki/). It was
 distributed under the GPL license. I adapted it and added the "new tab" feature.
+
+The icon is by Jaime Serra, distributed under the CC license.

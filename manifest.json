@@ -1,10 +1,10 @@
 {
 "update_url": "https://clients2.google.com/service/update2/crx",
 
-  "name": "Native Lazy Tabs",
-  "short_name": "NLT",
+  "name": "Sloth",
+  "short_name": "Sloth",
   "description": "Automatically discards all tabs at startup, before they load, reducing memory footprint and unnecessary bandwidth usage.",
-  "version": "0.5",
+  "version": "0.1",
   "permissions": [
     "tabs"
   ],

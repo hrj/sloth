@@ -26,15 +26,41 @@ chrome.runtime.onStartup.addListener(function () {
 // discard all tabs in all windows
 function discardAllTabs() {
   chrome.tabs.query({}, function (tabs) {
+    var windowIds = {};
+
+    // First check for new tabs in all windows
+    for (var i = 0; i < tabs.length; ++i) {
+      var tab = tabs[i];
+      if (!windowIds.hasOwnProperty(tab.windowId)) {
+        windowIds[tab.windowId] = [];
+      }
+      if(isNewTab(tab)) {
+        windowIds[tab.windowId].push(tab.index);
+      }
+    }
+
+    for (var wid in windowIds) {
+      if (windowIds[wid].length == 0) {
+        chrome.tabs.create({windowId: Number.parseInt(wid), active: true});
+      }
+    }
+
     for (var i = 0; i < tabs.length; ++i) {
       requestTabSuspension(tabs[i]);
     }
+
+    // highlightNewTabs();
   });
 }
 
 // request tab suspension
 function requestTabSuspension(tab) {
   if (tab === undefined) {
+    return;
+  }
+
+  if (isNewTab(tab)) {
+    chrome.tabs.update(tab.id, {active: true});
     return;
   }
   
@@ -67,9 +93,24 @@ function isSpecialTab(tab) {
 
 // discard tab
 function discardTab(tab) {
-  chrome.tabs.discard(tab.id, function (discardedTab) {
-    if (chrome.runtime.lastError) {
-      console.log(chrome.runtime.lastError.message);
-    }
-  });
+  if (isNewTab(tab)) {
+    chrome.tabs.update(tab.id, {active: true});
+  } else {
+    chrome.tabs.update(tab.id, {active: false}, function() {
+    chrome.tabs.discard(tab.id, function (discardedTab) {
+      if (chrome.runtime.lastError) {
+        log(chrome.runtime.lastError.message);
+      }
+    });
+    });
+  }
 }
+
+function log() {
+  chrome.extension.getBackgroundPage().console.log.apply(console, arguments);
+}
+
+function isNewTab(tab) {
+  return tab.url === 'chrome://newtab/';
+}
+

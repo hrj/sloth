@@ -15,12 +15,14 @@ any tab from loading during startup, unless you explicitly select it.
 
 Special tabs are those with `chrome://` URLs, for example.
 
+Note: Where there are hundreds of tabs open in the session, a couple of them do manage to sneak through and become active. See #1.
+
 ## How to Install
 
 From the release page, download the zip file and extract it somewhere on your file-system. Go to `chrome://extensions` and click
 `Load Unpacked extension`, select the `slot` directory and press `Ok`.
 
-## History
+## History / Credits
 
 I found an extension called Native Lazy Tabs [here](https://www.crx4chrome.com/extensions/ianooggapgmmmfojacmhnfaheidgpbki/). It was
 distributed under the GPL license. I adapted it and added the "new tab" feature.

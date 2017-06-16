@@ -15,7 +15,7 @@ any tab from loading during startup, unless you explicitly select it.
 
 Special tabs are those with `chrome://` URLs, for example.
 
-Note: Where there are hundreds of tabs open in the session, a couple of them do manage to sneak through and become active. See #1.
+Note: Where there are hundreds of tabs open in the session, a couple of them do manage to sneak through and become active. See https://github.com/hrj/sloth/issues/1.
 
 ## How to Install
 

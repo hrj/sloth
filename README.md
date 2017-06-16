@@ -1,4 +1,4 @@
-# Sloth
+<h1><img src="https://github.com/hrj/sloth/raw/master/img/icon48.png"></img> Sloth</h1>
 
 A light-weight chrome / chromium plugin which ensures that tabs are lazily loaded.
 

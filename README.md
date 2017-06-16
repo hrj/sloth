@@ -1,10 +1,10 @@
 # Sloth
 
-A simple chrome / chromium plugin which ensures that tabs are lazily loaded.
+A light-weight chrome / chromium plugin which ensures that tabs are lazily loaded.
 
 Requires Chrome 54+.
 
-# How it works
+## How it works
 
 This plugin uses the `discard` API available since Chrome 54. All tabs except
 new tabs or "special" tabs are discarded. Discarded tabs are visible in the tab
@@ -15,12 +15,12 @@ any tab from loading during startup, unless you explicitly select it.
 
 Special tabs are those with `chrome://` URLs, for example.
 
-# How to Install
+## How to Install
 
 From the release page, download the zip file and extract it somewhere on your file-system. Go to `chrome://extensions` and click
 `Load Unpacked extension`, select the `slot` directory and press `Ok`.
 
-# History
+## History
 
 I found an extension called Native Lazy Tabs [here](https://www.crx4chrome.com/extensions/ianooggapgmmmfojacmhnfaheidgpbki/). It was
 distributed under the GPL license. I adapted it and added the "new tab" feature.

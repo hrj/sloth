@@ -17,7 +17,7 @@ any tab from loading during startup, unless you explicitly select it.
 
 Special tabs are those with `chrome://` URLs, for example.
 
-Note: Where there are hundreds of tabs open in the session, a couple of them do manage to sneak through and become active. See https://github.com/hrj/sloth/issues/1.
+Note: When there are hundreds of tabs open in the session, a couple of them manage to sneak through and become active. This is a limitation due to Chromium's design. See https://github.com/hrj/sloth/issues/1.
 
 ## How to Install Locally
 If you can't / don't want to use the [Chrome Store](https://chrome.google.com/webstore/detail/sloth/filkeckmpdjogddcamkafnekhgfaehkc?hl=en-US&gl=IN), you can install it manually as follows.

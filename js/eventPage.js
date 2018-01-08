@@ -19,13 +19,24 @@
 
 "use strict";
 
-// discard all tabs at startup
+/* Async storage doesn't help with tab discard
+chrome.storage.local.get({
+    autoNewTab: true
+  }, function(items) {
+  chrome.runtime.onStartup.addListener(function () {
+    discardAllTabs(items.autoNewTab);
+  });
+});
+*/
+
 chrome.runtime.onStartup.addListener(function () {
   discardAllTabs();
 });
 
 // discard all tabs in all windows
-function discardAllTabs() {
+function discardAllTabs(autoNewTab) {
+  // discard all tabs at startup
+  var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
   chrome.tabs.query({}, function (tabs) {
     var windowIds = {};
 
@@ -40,9 +51,11 @@ function discardAllTabs() {
       }
     }
 
-    for (var wid in windowIds) {
-      if (windowIds[wid].length == 0) {
-        chrome.tabs.create({windowId: Number.parseInt(wid), active: true});
+    if (autoNewTab) {
+      for (var wid in windowIds) {
+        if (windowIds[wid].length == 0) {
+          chrome.tabs.create({windowId: Number.parseInt(wid), active: true});
+        }
       }
     }
 

@@ -35,7 +35,10 @@ chrome.runtime.onStartup.addListener(function () {
 });
 
 chrome.browserAction.onClicked.addListener(function(tab) {
-  var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
+  if(confirm("Discard all tabs?")) {
+    var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
+    discardAllTabs(autoNewTab);
+  }
 });
 
 // discard all tabs in all windows

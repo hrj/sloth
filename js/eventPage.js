@@ -30,28 +30,32 @@ chrome.storage.local.get({
 */
 
 chrome.runtime.onStartup.addListener(function () {
-  discardAllTabs();
+  var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
+  discardAllTabs(autoNewTab);
+});
+
+chrome.browserAction.onClicked.addListener(function(tab) {
+  var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
 });
 
 // discard all tabs in all windows
 function discardAllTabs(autoNewTab) {
   // discard all tabs at startup
-  var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
   chrome.tabs.query({}, function (tabs) {
-    var windowIds = {};
-
-    // First check for new tabs in all windows
-    for (var i = 0; i < tabs.length; ++i) {
-      var tab = tabs[i];
-      if (!windowIds.hasOwnProperty(tab.windowId)) {
-        windowIds[tab.windowId] = [];
-      }
-      if(isNewTab(tab)) {
-        windowIds[tab.windowId].push(tab.index);
-      }
-    }
-
     if (autoNewTab) {
+      var windowIds = {};
+
+      // First check for new tabs in all windows
+      for (var i = 0; i < tabs.length; ++i) {
+        var tab = tabs[i];
+        if (!windowIds.hasOwnProperty(tab.windowId)) {
+          windowIds[tab.windowId] = [];
+        }
+        if(isNewTab(tab)) {
+          windowIds[tab.windowId].push(tab.index);
+        }
+      }
+
       for (var wid in windowIds) {
         if (windowIds[wid].length == 0) {
           chrome.tabs.create({windowId: Number.parseInt(wid), active: true});

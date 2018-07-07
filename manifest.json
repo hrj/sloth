@@ -16,6 +16,15 @@
     "48": "img/icon48.png",
     "128": "img/icon128.png"
   },
+
+
+  "browser_action": {
+    "default_icon": {
+      "16": "img/icon16.png",
+      "48": "img/icon48.png",
+      "128": "img/icon128.png"
+    }
+  },
   "incognito": "not_allowed",
   "manifest_version": 2,
   "minimum_chrome_version": "54",

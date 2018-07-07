@@ -35,7 +35,7 @@ chrome.runtime.onStartup.addListener(function () {
 });
 
 chrome.browserAction.onClicked.addListener(function(tab) {
-  if(confirm("Discard all tabs?")) {
+  if(confirm("Discard all tabs?\nThis might lead to loss of data in form inputs.")) {
     var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
     discardAllTabs(autoNewTab);
   }

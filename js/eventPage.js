@@ -67,7 +67,7 @@ function discardAllTabs(autoNewTab) {
     }
 
     for (var i = 0; i < tabs.length; ++i) {
-      requestTabSuspension(tabs[i]);
+      requestTabSuspension(autoNewTab, tabs[i]);
     }
 
     // highlightNewTabs();
@@ -75,7 +75,7 @@ function discardAllTabs(autoNewTab) {
 }
 
 // request tab suspension
-function requestTabSuspension(tab) {
+function requestTabSuspension(autoNewTab, tab) {
   if (tab === undefined) {
     return;
   }
@@ -86,6 +86,10 @@ function requestTabSuspension(tab) {
   }
   
   if (isDiscarded(tab) || isSpecialTab(tab)) {
+    return;
+  }
+  
+  if (isActiveTab(tab) && !autoNewTab) {
     return;
   }
   
@@ -135,3 +139,6 @@ function isNewTab(tab) {
   return tab.url === 'chrome://newtab/';
 }
 
+function isActiveTab(tab) {
+  return tab.active;
+}

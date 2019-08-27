@@ -30,19 +30,21 @@ chrome.storage.local.get({
 */
 
 chrome.runtime.onStartup.addListener(function () {
-  var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
-  discardAllTabs(autoNewTab);
+  var autoNewTab = (localStorage.getItem('autoNewTab') || 'true') == 'true';
+  var discardPinned = (localStorage.getItem('discardPinned') || 'true') == 'true';
+  discardAllTabs(autoNewTab, discardPinned);
 });
 
 chrome.browserAction.onClicked.addListener(function(tab) {
   if(confirm("Suspend all tabs?\nThis might lead to loss of data in form inputs.")) {
     var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
-    discardAllTabs(autoNewTab);
+    var discardPinned = localStorage.getItem('discardPinned') == 'true';
+    discardAllTabs(autoNewTab, discardPinned);
   }
 });
 
 // discard all tabs in all windows
-function discardAllTabs(autoNewTab) {
+function discardAllTabs(autoNewTab, discardPinned) {
   // discard all tabs at startup
   chrome.tabs.query({}, function (tabs) {
     if (autoNewTab) {
@@ -67,7 +69,7 @@ function discardAllTabs(autoNewTab) {
     }
 
     for (var i = 0; i < tabs.length; ++i) {
-      requestTabSuspension(autoNewTab, tabs[i]);
+      requestTabSuspension(autoNewTab, discardPinned, tabs[i]);
     }
 
     // highlightNewTabs();
@@ -75,7 +77,7 @@ function discardAllTabs(autoNewTab) {
 }
 
 // request tab suspension
-function requestTabSuspension(autoNewTab, tab) {
+function requestTabSuspension(autoNewTab, discardPinned, tab) {
   if (tab === undefined) {
     return;
   }
@@ -90,6 +92,10 @@ function requestTabSuspension(autoNewTab, tab) {
   }
   
   if (isActiveTab(tab) && !autoNewTab) {
+    return;
+  }
+
+  if (tab.pinned && !discardPinned) {
     return;
   }
   

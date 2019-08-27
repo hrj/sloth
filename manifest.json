@@ -3,7 +3,7 @@
   "name": "Sloth",
   "short_name": "Sloth",
   "description": "Automatically discards all tabs at startup, before they load, reducing memory footprint and unnecessary bandwidth usage.",
-  "version": "0.4",
+  "version": "0.5",
   "permissions": [
     "tabs"
   ],

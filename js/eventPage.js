@@ -30,7 +30,7 @@ chrome.storage.local.get({
 */
 
 chrome.runtime.onStartup.addListener(function () {
-  var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
+  var autoNewTab = (localStorage.getItem('autoNewTab') || 'true') == 'true';
   discardAllTabs(autoNewTab);
 });
 

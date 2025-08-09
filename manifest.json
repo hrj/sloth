@@ -5,7 +5,8 @@
   "description": "Automatically discards all tabs at startup, before they load, reducing memory footprint and unnecessary bandwidth usage.",
   "version": "0.6",
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "background": {
     "service_worker": "js/eventPage.js"

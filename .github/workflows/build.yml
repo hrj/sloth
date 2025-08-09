@@ -1,0 +1,23 @@
+name: Build Extension
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Zip Extension
+        run: zip -r sloth.zip html js img manifest.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sloth-extension
+          path: sloth.zip

@@ -2,9 +2,12 @@
 
 A light-weight chrome / chromium plugin which ensures that tabs are lazily loaded.
 
-Requires Chrome 54+.
+Tested with Chrome/Chromium 138.x
 
-Available in [Chrome store](https://chrome.google.com/webstore/detail/sloth/filkeckmpdjogddcamkafnekhgfaehkc?hl=en-US&gl=IN).
+
+### Installation
+Install manually from the slot.zip file in the [releases](https://github.com/hrj/sloth/releases) page. The process for
+listing on official webstore has become too cumbersome now.
 
 ## How it works
 

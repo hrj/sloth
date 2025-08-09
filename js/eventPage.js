@@ -30,17 +30,22 @@ chrome.storage.local.get({
 */
 
 chrome.runtime.onStartup.addListener(function () {
-  var autoNewTab = (localStorage.getItem('autoNewTab') || 'true') == 'true';
-  var discardPinned = (localStorage.getItem('discardPinned') || 'true') == 'true';
-  discardAllTabs(autoNewTab, discardPinned);
+  chrome.storage.local.get({
+    autoNewTab: true,
+    discardPinned: true
+  }, function(items) {
+    discardAllTabs(items.autoNewTab, items.discardPinned);
+  });
 });
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-  if(confirm("Suspend all tabs?\nThis might lead to loss of data in form inputs.")) {
-    var autoNewTab = localStorage.getItem('autoNewTab') == 'true';
-    var discardPinned = localStorage.getItem('discardPinned') == 'true';
-    discardAllTabs(autoNewTab, discardPinned);
-  }
+chrome.action.onClicked.addListener(function(tab) {
+  // No confirmation dialog in service workers.
+  chrome.storage.local.get({
+    autoNewTab: true,
+    discardPinned: true
+  }, function(items) {
+    discardAllTabs(items.autoNewTab, items.discardPinned);
+  });
 });
 
 // discard all tabs in all windows
@@ -138,7 +143,7 @@ function discardTab(tab) {
 }
 
 function log() {
-  chrome.extension.getBackgroundPage().console.log.apply(console, arguments);
+  console.log.apply(console, arguments);
 }
 
 function isNewTab(tab) {

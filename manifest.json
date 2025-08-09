@@ -8,8 +8,7 @@
     "tabs"
   ],
   "background": {
-    "scripts": ["js/eventPage.js"],
-    "persistent": false
+    "service_worker": "js/eventPage.js"
   },
   "icons": {
     "16": "img/icon16.png",
@@ -18,7 +17,7 @@
   },
 
 
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "img/icon16.png",
       "48": "img/icon48.png",
@@ -26,8 +25,8 @@
     }
   },
   "incognito": "not_allowed",
-  "manifest_version": 2,
-  "minimum_chrome_version": "54",
+  "manifest_version": 3,
+  "minimum_chrome_version": "88",
   "options_ui": {
     "page": "html/options.html",
     "chrome_style": true

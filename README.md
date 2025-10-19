@@ -4,11 +4,6 @@ A light-weight chrome / chromium plugin which ensures that tabs are lazily loade
 
 Tested with Chrome/Chromium 138.x
 
-
-### Installation
-Install manually from the slot.zip file in the [releases](https://github.com/hrj/sloth/releases) page. The process for
-listing on official webstore has become too cumbersome now.
-
 ## How it works
 
 This plugin uses the `discard` API available since Chrome 54. All tabs except
@@ -22,8 +17,11 @@ Special tabs are those with `chrome://` URLs, for example.
 
 Note: When there are hundreds of tabs open in the session, a couple of them manage to sneak through and become active. This is a limitation due to Chromium's design. See https://github.com/hrj/sloth/issues/1.
 
+## Install from the Chrome Web Store
+You can install the extension from the [Chrome Store](https://chrome.google.com/webstore/detail/sloth/filkeckmpdjogddcamkafnekhgfaehkc).
+
 ## How to Install Locally
-If you can't / don't want to use the [Chrome Store](https://chrome.google.com/webstore/detail/sloth/filkeckmpdjogddcamkafnekhgfaehkc?hl=en-US&gl=IN), you can install it manually as follows.
+If you can't / don't want to use the Chrome Store, you can install it manually as follows.
 
 From the release page, download the zip file and extract it somewhere on your file-system. Go to `chrome://extensions` and click
 `Load Unpacked extension`, select the `slot` directory and press `Ok`.

@@ -114,7 +114,11 @@ function isDiscarded(tab) {
 
 // check to see if the tab is special
 function isSpecialTab(tab) {
-  var url = tab.url;
+  var url = tab ? tab.url : undefined;
+
+  if (!url) {
+    return false;
+  }
   
   if (url.indexOf('chrome-extension:') === 0 ||
       url.indexOf('chrome:') === 0 ||
@@ -152,4 +156,13 @@ function isNewTab(tab) {
 
 function isActiveTab(tab) {
   return tab.active;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    isSpecialTab,
+    isNewTab,
+    isActiveTab,
+    isDiscarded
+  };
 }

@@ -135,15 +135,11 @@ function discardTab(tab) {
     chrome.tabs.update(tab.id, {active: false}, function() {
     chrome.tabs.discard(tab.id, function (discardedTab) {
       if (chrome.runtime.lastError) {
-        log(chrome.runtime.lastError.message);
+        console.log(chrome.runtime.lastError.message);
       }
     });
     });
   }
-}
-
-function log() {
-  console.log.apply(console, arguments);
 }
 
 function isNewTab(tab) {

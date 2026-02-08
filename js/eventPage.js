@@ -91,11 +91,11 @@ function requestTabSuspension(autoNewTab, discardPinned, tab) {
     chrome.tabs.update(tab.id, {active: true});
     return;
   }
-  
+
   if (isDiscarded(tab) || isSpecialTab(tab)) {
     return;
   }
-  
+
   if (isActiveTab(tab) && !autoNewTab) {
     return;
   }
@@ -103,7 +103,7 @@ function requestTabSuspension(autoNewTab, discardPinned, tab) {
   if (tab.pinned && !discardPinned) {
     return;
   }
-  
+
   discardTab(tab);
 }
 
@@ -115,15 +115,15 @@ function isDiscarded(tab) {
 // check to see if the tab is special
 function isSpecialTab(tab) {
   var url = tab.url;
-  
-  if (url.indexOf('chrome-extension:') === 0 ||
-      url.indexOf('chrome:') === 0 ||
-      url.indexOf('chrome-devtools:') === 0 ||
-      url.indexOf('file:') === 0 ||
+
+  if (url.startsWith('chrome-extension:') ||
+      url.startsWith('chrome:') ||
+      url.startsWith('chrome-devtools:') ||
+      url.startsWith('file:') ||
       url.indexOf('chrome.google.com/webstore') >= 0) {
-        return true;
+    return true;
   }
-  
+
   return false;
 }
 

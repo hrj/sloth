@@ -1,0 +1,21 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "<h1><img src=\"https://github.com/hrj/sloth/raw/master/img/icon48.png\"></img> Sloth</h1>",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test js/eventPage.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrj/sloth.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hrj/sloth/issues"
+  },
+  "homepage": "https://github.com/hrj/sloth#readme"
+}

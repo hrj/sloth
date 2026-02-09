@@ -10,7 +10,7 @@ function save_options() {
     var status = document.getElementById('status');
     status.textContent = 'Options saved.';
     setTimeout(function() {
-      status.innerHTML = '&nbsp;';
+      status.textContent = '\u00A0';
     }, 750);
   });
 }
@@ -30,3 +30,10 @@ function restore_options() {
 
 document.addEventListener('DOMContentLoaded', restore_options);
 document.getElementById('save').addEventListener('click', save_options);
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    save_options,
+    restore_options
+  };
+}

@@ -118,13 +118,32 @@ function isSpecialTab(tab) {
   if (!url) {
     return false;
   }
+  
+  try {
+    var urlObj = new URL(url);
+    var protocol = urlObj.protocol;
+    if (protocol === 'chrome:' ||
+        protocol === 'chrome-extension:' ||
+        protocol === 'chrome-devtools:' ||
+        protocol === 'file:') {
+      return true;
+    }
 
-  if (url.startsWith('chrome-extension:') ||
-      url.startsWith('chrome:') ||
-      url.startsWith('chrome-devtools:') ||
-      url.startsWith('file:') ||
-      url.indexOf('chrome.google.com/webstore') >= 0) {
-    return true;
+    if (urlObj.hostname === 'chrome.google.com' && urlObj.pathname.startsWith('/webstore')) {
+      return true;
+    }
+
+    if (urlObj.hostname === 'chromewebstore.google.com') {
+      return true;
+    }
+  } catch (e) {
+    // If URL is invalid, fallback to basic prefix checks
+    if (url.startsWith('chrome-extension:') ||
+        url.startsWith('chrome:') ||
+        url.startsWith('chrome-devtools:') ||
+        url.startsWith('file:')) {
+      return true;
+    }
   }
 
   return false;

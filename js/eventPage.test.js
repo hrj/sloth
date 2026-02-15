@@ -32,7 +32,7 @@ global.chrome = {
   }
 };
 
-const { isSpecialTab, discardAllTabs } = require('./eventPage.js');
+const { isSpecialTab, isNewTab, discardAllTabs } = require('./eventPage.js');
 
 test('isSpecialTab edge cases', async (t) => {
   await t.test('returns true for chrome:// URLs', () => {
@@ -52,10 +52,16 @@ test('isSpecialTab edge cases', async (t) => {
     assert.strictEqual(isSpecialTab({url: 'file:///home/user/document.pdf'}), true);
   });
 
-  await t.test('returns true for chrome webstore URLs anywhere in the string', () => {
+  await t.test('returns true for legitimate chrome webstore URLs', () => {
     assert.strictEqual(isSpecialTab({url: 'https://chrome.google.com/webstore/category/extensions'}), true);
-    assert.strictEqual(isSpecialTab({url: 'http://chrome.google.com/webstore'}), true);
-    assert.strictEqual(isSpecialTab({url: 'https://example.com/chrome.google.com/webstore'}), true);
+    assert.strictEqual(isSpecialTab({url: 'https://chrome.google.com/webstore'}), true);
+    assert.strictEqual(isSpecialTab({url: 'https://chromewebstore.google.com/'}), true);
+  });
+
+  await t.test('returns false for fake chrome webstore URLs', () => {
+    assert.strictEqual(isSpecialTab({url: 'https://example.com/chrome.google.com/webstore'}), false);
+    assert.strictEqual(isSpecialTab({url: 'https://example.com/?q=chrome.google.com/webstore'}), false);
+    assert.strictEqual(isSpecialTab({url: 'http://chrome.google.com.malicious.com/webstore'}), false);
   });
 
   await t.test('returns false for regular URLs', () => {
@@ -89,4 +95,27 @@ test('discardAllTabs creates new tab only for windows without a new tab', (t) =>
   // So it should create a new tab in window 2.
   assert.strictEqual(createdTabs.length, 1);
   assert.strictEqual(createdTabs[0].windowId, 2);
+});
+
+
+test('isNewTab', async (t) => {
+  await t.test('returns true for chrome://newtab/', () => {
+    assert.strictEqual(isNewTab({url: 'chrome://newtab/'}), true);
+  });
+
+  await t.test('returns false for other URLs', () => {
+    assert.strictEqual(isNewTab({url: 'https://google.com'}), false);
+    assert.strictEqual(isNewTab({url: 'chrome://settings/'}), false);
+  });
+
+  await t.test('returns false for chrome://newtab (no trailing slash)', () => {
+    assert.strictEqual(isNewTab({url: 'chrome://newtab'}), false);
+  });
+
+  await t.test('handles missing or empty URL', () => {
+    assert.strictEqual(isNewTab({}), false);
+    assert.strictEqual(isNewTab({url: ''}), false);
+    assert.strictEqual(isNewTab({url: null}), false);
+  });
+
 });

@@ -42,10 +42,16 @@ test('isSpecialTab edge cases', async (t) => {
     assert.strictEqual(isSpecialTab({url: 'file:///home/user/document.pdf'}), true);
   });
 
-  await t.test('returns true for chrome webstore URLs anywhere in the string', () => {
+  await t.test('returns true for legitimate chrome webstore URLs', () => {
     assert.strictEqual(isSpecialTab({url: 'https://chrome.google.com/webstore/category/extensions'}), true);
-    assert.strictEqual(isSpecialTab({url: 'http://chrome.google.com/webstore'}), true);
-    assert.strictEqual(isSpecialTab({url: 'https://example.com/chrome.google.com/webstore'}), true);
+    assert.strictEqual(isSpecialTab({url: 'https://chrome.google.com/webstore'}), true);
+    assert.strictEqual(isSpecialTab({url: 'https://chromewebstore.google.com/'}), true);
+  });
+
+  await t.test('returns false for fake chrome webstore URLs', () => {
+    assert.strictEqual(isSpecialTab({url: 'https://example.com/chrome.google.com/webstore'}), false);
+    assert.strictEqual(isSpecialTab({url: 'https://example.com/?q=chrome.google.com/webstore'}), false);
+    assert.strictEqual(isSpecialTab({url: 'http://chrome.google.com.malicious.com/webstore'}), false);
   });
 
   await t.test('returns false for regular URLs', () => {

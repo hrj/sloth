@@ -53,24 +53,23 @@ function discardAllTabs(autoNewTab, discardPinned) {
   // discard all tabs at startup
   chrome.tabs.query({}, function (tabs) {
     if (autoNewTab) {
-      var windowIds = {};
+      var windowIds = new Set();
+      var windowsWithNewTabs = new Set();
 
       // First check for new tabs in all windows
       for (var i = 0; i < tabs.length; ++i) {
         var tab = tabs[i];
-        if (!windowIds.hasOwnProperty(tab.windowId)) {
-          windowIds[tab.windowId] = [];
-        }
-        if(isNewTab(tab)) {
-          windowIds[tab.windowId].push(tab.index);
+        windowIds.add(tab.windowId);
+        if (isNewTab(tab)) {
+          windowsWithNewTabs.add(tab.windowId);
         }
       }
 
-      for (var wid in windowIds) {
-        if (windowIds[wid].length == 0) {
-          chrome.tabs.create({windowId: Number.parseInt(wid), active: true});
+      windowIds.forEach(function(wid) {
+        if (!windowsWithNewTabs.has(wid)) {
+          chrome.tabs.create({windowId: wid, active: true});
         }
-      }
+      });
     }
 
     for (var i = 0; i < tabs.length; ++i) {
@@ -119,7 +118,7 @@ function isSpecialTab(tab) {
   if (!url) {
     return false;
   }
-  
+
   if (url.startsWith('chrome-extension:') ||
       url.startsWith('chrome:') ||
       url.startsWith('chrome-devtools:') ||
@@ -159,6 +158,7 @@ if (typeof module !== 'undefined' && module.exports) {
     isSpecialTab,
     isNewTab,
     isActiveTab,
-    isDiscarded
+    isDiscarded,
+    discardAllTabs
   };
 }

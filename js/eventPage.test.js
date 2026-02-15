@@ -22,7 +22,7 @@ global.chrome = {
   }
 };
 
-const { isSpecialTab } = require('./eventPage.js');
+const { isSpecialTab, isNewTab } = require('./eventPage.js');
 
 test('isSpecialTab edge cases', async (t) => {
   await t.test('returns true for chrome:// URLs', () => {
@@ -73,5 +73,26 @@ test('isSpecialTab edge cases', async (t) => {
     assert.strictEqual(isSpecialTab({}), false);
     assert.strictEqual(isSpecialTab({url: ''}), false);
     assert.strictEqual(isSpecialTab({url: null}), false);
+  });
+});
+
+test('isNewTab', async (t) => {
+  await t.test('returns true for chrome://newtab/', () => {
+    assert.strictEqual(isNewTab({url: 'chrome://newtab/'}), true);
+  });
+
+  await t.test('returns false for other URLs', () => {
+    assert.strictEqual(isNewTab({url: 'https://google.com'}), false);
+    assert.strictEqual(isNewTab({url: 'chrome://settings/'}), false);
+  });
+
+  await t.test('returns false for chrome://newtab (no trailing slash)', () => {
+    assert.strictEqual(isNewTab({url: 'chrome://newtab'}), false);
+  });
+
+  await t.test('handles missing or empty URL', () => {
+    assert.strictEqual(isNewTab({}), false);
+    assert.strictEqual(isNewTab({url: ''}), false);
+    assert.strictEqual(isNewTab({url: null}), false);
   });
 });

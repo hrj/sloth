@@ -2,9 +2,11 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 
 // Mock chrome before requiring the file
+const createdTabs = [];
 global.chrome = {
   runtime: {
-    onStartup: { addListener: () => {} }
+    onStartup: { addListener: () => {} },
+    lastError: null
   },
   action: {
     onClicked: { addListener: () => {} }
@@ -15,14 +17,22 @@ global.chrome = {
     }
   },
   tabs: {
-    query: () => {},
+    query: (queryInfo, callback) => {
+      callback([
+        { id: 1, windowId: 1, url: 'https://example.com', index: 0, active: false, discarded: false },
+        { id: 2, windowId: 1, url: 'chrome://newtab/', index: 1, active: true, discarded: false },
+        { id: 3, windowId: 2, url: 'https://example.org', index: 0, active: true, discarded: false }
+      ]);
+    },
     update: () => {},
-    create: () => {},
+    create: (createProperties) => {
+      createdTabs.push(createProperties);
+    },
     discard: () => {}
   }
 };
 
-const { isSpecialTab, isNewTab } = require('./eventPage.js');
+const { isSpecialTab, isNewTab, discardAllTabs } = require('./eventPage.js');
 
 test('isSpecialTab edge cases', async (t) => {
   await t.test('returns true for chrome:// URLs', () => {
@@ -76,6 +86,18 @@ test('isSpecialTab edge cases', async (t) => {
   });
 });
 
+test('discardAllTabs creates new tab only for windows without a new tab', (t) => {
+  createdTabs.length = 0;
+  discardAllTabs(true, true);
+
+  // Window 1 has a new tab (id 2).
+  // Window 2 does not have a new tab.
+  // So it should create a new tab in window 2.
+  assert.strictEqual(createdTabs.length, 1);
+  assert.strictEqual(createdTabs[0].windowId, 2);
+});
+
+
 test('isNewTab', async (t) => {
   await t.test('returns true for chrome://newtab/', () => {
     assert.strictEqual(isNewTab({url: 'chrome://newtab/'}), true);
@@ -95,4 +117,5 @@ test('isNewTab', async (t) => {
     assert.strictEqual(isNewTab({url: ''}), false);
     assert.strictEqual(isNewTab({url: null}), false);
   });
+
 });

@@ -53,12 +53,12 @@ function discardAllTabs(autoNewTab, discardPinned) {
   // discard all tabs at startup
   chrome.tabs.query({}, function (tabs) {
     if (autoNewTab) {
-      var windowIds = new Set();
-      var windowsWithNewTabs = new Set();
+      const windowIds = new Set();
+      const windowsWithNewTabs = new Set();
 
       // First check for new tabs in all windows
-      for (var i = 0; i < tabs.length; ++i) {
-        var tab = tabs[i];
+      for (let i = 0; i < tabs.length; ++i) {
+        const tab = tabs[i];
         windowIds.add(tab.windowId);
         if (isNewTab(tab)) {
           windowsWithNewTabs.add(tab.windowId);
@@ -72,7 +72,7 @@ function discardAllTabs(autoNewTab, discardPinned) {
       });
     }
 
-    for (var i = 0; i < tabs.length; ++i) {
+    for (let i = 0; i < tabs.length; ++i) {
       requestTabSuspension(autoNewTab, discardPinned, tabs[i]);
     }
 
@@ -113,15 +113,15 @@ function isDiscarded(tab) {
 
 // check to see if the tab is special
 function isSpecialTab(tab) {
-  var url = tab ? tab.url : undefined;
+  const url = tab ? tab.url : undefined;
 
   if (!url) {
     return false;
   }
   
   try {
-    var urlObj = new URL(url);
-    var protocol = urlObj.protocol;
+    const urlObj = new URL(url);
+    const protocol = urlObj.protocol;
     if (protocol === 'chrome:' ||
         protocol === 'chrome-extension:' ||
         protocol === 'chrome-devtools:' ||

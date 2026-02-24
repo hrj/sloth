@@ -1,13 +1,13 @@
 // Saves options to chrome.storage
 function save_options() {
-  var autoNewTab = document.getElementById('autoNewTab').checked;
-  var discardPinned = document.getElementById('discardPinned').checked;
+  const autoNewTab = document.getElementById('autoNewTab').checked;
+  const discardPinned = document.getElementById('discardPinned').checked;
   chrome.storage.local.set({
     autoNewTab: autoNewTab,
     discardPinned: discardPinned
   }, function() {
     // Update status to let user know options were saved.
-    var status = document.getElementById('status');
+    const status = document.getElementById('status');
     status.textContent = 'Options saved.';
     setTimeout(function() {
       status.textContent = '\u00A0';

@@ -32,7 +32,7 @@ global.chrome = {
   }
 };
 
-const { isSpecialTab, isNewTab, discardAllTabs } = require('./eventPage.js');
+const { isSpecialTab, isNewTab, discardAllTabs, isDiscarded } = require('./eventPage.js');
 
 test('isSpecialTab edge cases', async (t) => {
   await t.test('returns true for chrome:// URLs', () => {
@@ -118,4 +118,18 @@ test('isNewTab', async (t) => {
     assert.strictEqual(isNewTab({url: null}), false);
   });
 
+});
+
+test('isDiscarded', async (t) => {
+  await t.test('returns true when tab is discarded', () => {
+    assert.strictEqual(isDiscarded({discarded: true}), true);
+  });
+
+  await t.test('returns false when tab is not discarded', () => {
+    assert.strictEqual(isDiscarded({discarded: false}), false);
+  });
+
+  await t.test('handles missing discarded property', () => {
+    assert.strictEqual(isDiscarded({}), undefined);
+  });
 });

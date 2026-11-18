@@ -29,82 +29,258 @@ chrome.storage.local.get({
 });
 */
 
-chrome.runtime.onStartup.addListener(function () {
-  chrome.storage.local.get({
-    autoNewTab: true,
-    discardPinned: true
-  }, function(items) {
-    discardAllTabs(items.autoNewTab, items.discardPinned);
-  });
+chrome.runtime.onStartup.addListener(async function () {
+  const items = await getSettings();
+  await discardAllTabs(items.autoNewTab, items.discardPinned, items.showDiscardedMarker);
 });
 
-chrome.action.onClicked.addListener(function(tab) {
+chrome.action.onClicked.addListener(async function() {
   // No confirmation dialog in service workers.
-  chrome.storage.local.get({
-    autoNewTab: true,
-    discardPinned: true
-  }, function(items) {
-    discardAllTabs(items.autoNewTab, items.discardPinned);
-  });
+  const items = await getSettings();
+  await discardAllTabs(items.autoNewTab, items.discardPinned, items.showDiscardedMarker);
 });
 
-// discard all tabs in all windows
-function discardAllTabs(autoNewTab, discardPinned) {
-  // discard all tabs at startup
-  chrome.tabs.query({}, function (tabs) {
-    if (autoNewTab) {
-      const windowIds = new Set();
-      const windowsWithNewTabs = new Set();
-
-      // First check for new tabs in all windows
-      for (let i = 0; i < tabs.length; ++i) {
-        const tab = tabs[i];
-        windowIds.add(tab.windowId);
-        if (isNewTab(tab)) {
-          windowsWithNewTabs.add(tab.windowId);
-        }
-      }
-
-      windowIds.forEach(function(wid) {
-        if (!windowsWithNewTabs.has(wid)) {
-          chrome.tabs.create({windowId: wid, active: true});
-        }
-      });
-    }
-
-    for (let i = 0; i < tabs.length; ++i) {
-      requestTabSuspension(autoNewTab, discardPinned, tabs[i]);
-    }
-
-    // highlightNewTabs();
+function getSettings() {
+  return new Promise(resolve => {
+    chrome.storage.local.get({
+      autoNewTab: true,
+      discardPinned: true,
+      showDiscardedMarker: false
+    }, resolve);
   });
 }
 
-// request tab suspension
-function requestTabSuspension(autoNewTab, discardPinned, tab) {
-  if (tab === undefined) {
-    return;
+const MARKER_SETTLE_DELAY_MS = 1000;
+const MARKER_ATTEMPT_TIMEOUT_MS = 1000;
+
+// discard all tabs in all windows
+async function discardAllTabs(autoNewTab, discardPinned, showDiscardedMarker = false) {
+  const tabs = await queryTabs();
+  const markerEnabled = showDiscardedMarker && await hasMarkerPermission();
+
+  if (autoNewTab) {
+    const windowIds = new Set();
+    const windowsWithNewTabs = new Set();
+
+    // First check for new tabs in all windows
+    for (let i = 0; i < tabs.length; ++i) {
+      const tab = tabs[i];
+      windowIds.add(tab.windowId);
+      if (isNewTab(tab)) {
+        windowsWithNewTabs.add(tab.windowId);
+      }
+    }
+
+    windowIds.forEach(function(wid) {
+      if (!windowsWithNewTabs.has(wid)) {
+        chrome.tabs.create({windowId: wid, active: true});
+      }
+    });
   }
 
-  if (isNewTab(tab)) {
-    chrome.tabs.update(tab.id, {active: true});
-    return;
+  tabs.filter(isNewTab).forEach(tab => chrome.tabs.update(tab.id, {active: true}));
+
+  const candidates = tabs.filter(tab => isDiscardCandidate(autoNewTab, discardPinned, tab));
+
+  if (markerEnabled) {
+    const markerStartedAt = Date.now();
+    await Promise.all(candidates.map(tab => {
+      const cancellation = {cancelled: false};
+      const attempt = markTabForDiscard(tab, cancellation);
+      return withTimeout(attempt, MARKER_ATTEMPT_TIMEOUT_MS, () => {
+        cancellation.cancelled = true;
+      });
+    }));
+    const elapsed = Date.now() - markerStartedAt;
+    const remaining = MARKER_SETTLE_DELAY_MS - elapsed;
+    if (remaining > 0) {
+      await delay(remaining);
+    }
+  }
+
+  await Promise.all(candidates.map(tab => discardTab(tab)));
+}
+
+function queryTabs() {
+  return new Promise(resolve => chrome.tabs.query({}, resolve));
+}
+
+function hasMarkerPermission() {
+  return new Promise(resolve => {
+    if (!chrome.permissions || !chrome.permissions.contains) {
+      resolve(false);
+      return;
+    }
+
+    chrome.permissions.contains({
+      permissions: ['scripting'],
+      origins: ['*://*/*']
+    }, resolve);
+  });
+}
+
+function delay(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+function withTimeout(promise, milliseconds, onTimeout) {
+  return Promise.race([
+    promise,
+    delay(milliseconds).then(() => {
+      if (onTimeout) {
+        onTimeout();
+      }
+      return false;
+    })
+  ]);
+}
+
+function isDiscardCandidate(autoNewTab, discardPinned, tab) {
+  if (tab === undefined || isNewTab(tab)) {
+    return false;
   }
 
   if (isDiscarded(tab) || isSpecialTab(tab)) {
-    return;
+    return false;
   }
 
   if (isActiveTab(tab) && !autoNewTab) {
-    return;
+    return false;
   }
 
   if (tab.pinned && !discardPinned) {
+    return false;
+  }
+
+  return true;
+}
+
+async function markTabForDiscard(tab, cancellation = {cancelled: false}) {
+  if (!tab || tab.status !== 'complete' || !tab.url || !chrome.scripting) {
+    return false;
+  }
+
+  let markerDataUrl;
+  try {
+    markerDataUrl = await createDiscardMarkerDataUrl(tab.favIconUrl);
+  } catch (error) {
+    markerDataUrl = undefined;
+  }
+
+  if (cancellation.cancelled) {
+    return false;
+  }
+
+  const marked = await executeMarkerScript(tab.id, markerDataUrl);
+  if (marked || cancellation.cancelled) {
+    return marked;
+  }
+
+  return withTimeout(executeTitleFallbackScript(tab.id), MARKER_ATTEMPT_TIMEOUT_MS);
+}
+
+async function createDiscardMarkerDataUrl(faviconUrl) {
+  if (!faviconUrl || typeof fetch !== 'function' ||
+      typeof createImageBitmap !== 'function' || typeof OffscreenCanvas !== 'function') {
+    return undefined;
+  }
+
+  const controller = typeof AbortController === 'function' ? new AbortController() : undefined;
+  const timeout = controller ? setTimeout(() => controller.abort(), MARKER_ATTEMPT_TIMEOUT_MS) : undefined;
+  let response;
+  try {
+    response = await fetch(faviconUrl, controller ? {signal: controller.signal} : undefined);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+  if (!response.ok) {
+    throw new Error(`Unable to fetch favicon: ${response.status}`);
+  }
+
+  const source = await createImageBitmap(await response.blob());
+  const size = 32;
+  const canvas = new OffscreenCanvas(size, size);
+  const context = canvas.getContext('2d');
+  context.save();
+  context.beginPath();
+  context.arc(size / 2, size / 2, size * 0.35, 0, Math.PI * 2);
+  context.clip();
+  context.drawImage(source, size * 0.15, size * 0.15, size * 0.7, size * 0.7);
+  context.restore();
+
+  context.strokeStyle = '#5f6368';
+  context.lineWidth = 3;
+  context.lineCap = 'round';
+  const degrees = Math.PI / 180;
+  const radius = size / 2 - 2;
+  context.beginPath();
+  context.arc(size / 2, size / 2, radius, 100 * degrees, 260 * degrees);
+  context.stroke();
+  for (let index = 0; index < 4; ++index) {
+    const start = (280 + index * 45) * degrees;
+    context.beginPath();
+    context.arc(size / 2, size / 2, radius, start, start + 25 * degrees);
+    context.stroke();
+  }
+
+  source.close();
+  return blobToDataUrl(await canvas.convertToBlob({type: 'image/png'}));
+}
+
+async function blobToDataUrl(blob) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+  }
+  return `data:${blob.type || 'application/octet-stream'};base64,${btoa(binary)}`;
+}
+
+function executeMarkerScript(tabId, faviconDataUrl) {
+  return new Promise(resolve => {
+    chrome.scripting.executeScript({
+      target: {tabId},
+      func: applyDiscardMarker,
+      args: [faviconDataUrl || null]
+    }, () => resolve(!chrome.runtime.lastError));
+  });
+}
+
+function executeTitleFallbackScript(tabId) {
+  return new Promise(resolve => {
+    chrome.scripting.executeScript({
+      target: {tabId},
+      func: () => {
+        const prefix = '\ud83d\udca4 ';
+        if (!document.title.startsWith(prefix)) {
+          document.title = `${prefix}${document.title || location.href}`;
+        }
+      }
+    }, () => resolve(!chrome.runtime.lastError));
+  });
+}
+
+function applyDiscardMarker(markerDataUrl) {
+  const prefix = '\ud83d\udca4 ';
+  if (!markerDataUrl || document.readyState !== 'complete') {
+    if (!document.title.startsWith(prefix)) {
+      document.title = `${prefix}${document.title || location.href}`;
+    }
     return;
   }
 
-  discardTab(tab);
+  const iconLinks = document.querySelectorAll('link[rel~="icon"], link[rel*="icon"]');
+  iconLinks.forEach(link => link.remove());
+  const iconLink = document.createElement('link');
+  iconLink.rel = 'icon';
+  iconLink.type = 'image/png';
+  iconLink.href = markerDataUrl;
+  document.head.appendChild(iconLink);
 }
+
 
 // check to see if the tab is discarded
 function isDiscarded(tab) {
@@ -153,15 +329,21 @@ function isSpecialTab(tab) {
 function discardTab(tab) {
   if (isNewTab(tab)) {
     chrome.tabs.update(tab.id, {active: true});
-  } else {
-    chrome.tabs.update(tab.id, {active: false}, function() {
-    chrome.tabs.discard(tab.id, function (discardedTab) {
-      if (chrome.runtime.lastError) {
-        console.log(chrome.runtime.lastError.message);
-      }
-    });
-    });
+    return Promise.resolve(false);
   }
+
+  return new Promise(resolve => {
+    chrome.tabs.update(tab.id, {active: false}, function() {
+      chrome.tabs.discard(tab.id, function (discardedTab) {
+        if (chrome.runtime.lastError) {
+          console.log(chrome.runtime.lastError.message);
+          resolve(false);
+          return;
+        }
+        resolve(Boolean(discardedTab));
+      });
+    });
+  });
 }
 
 function isNewTab(tab) {

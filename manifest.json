@@ -8,6 +8,12 @@
     "tabs",
     "storage"
   ],
+  "optional_permissions": [
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
   "background": {
     "service_worker": "js/eventPage.js"
   },

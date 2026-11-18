@@ -15,6 +15,20 @@ any tab from loading during startup, unless you explicitly select it.
 
 Special tabs are those with `chrome://` URLs, for example.
 
+## Discarded-tab marker
+
+The options page can enable a sleep marker for discarded tabs. Sloth requests
+optional access to websites only when this option is enabled. It keeps using
+Chromium's native discard API and, when a live page allows it, replaces the
+favicon with a Chromium-style dotted discard ring. If the page cannot accept
+the marker, Sloth prefixes the title with `💤`. Discarding still works when the
+option is disabled or access is denied.
+
+Tabs that are already unloaded during session restore, or pages that do not
+allow script injection, cannot be marked without loading or replacing the page;
+they are still discarded normally. The marker is best-effort and does not
+change the tab URL or browsing history.
+
 Note: When there are hundreds of tabs open in the session, a couple of them manage to sneak through and become active. This is a limitation due to Chromium's design. See https://github.com/hrj/sloth/issues/1.
 
 ## Install from the Chrome Web Store

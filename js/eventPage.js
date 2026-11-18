@@ -208,6 +208,9 @@ async function createDiscardMarkerDataUrl(faviconUrl) {
   context.arc(size / 2, size / 2, size * 0.35, 0, Math.PI * 2);
   context.clip();
   context.drawImage(source, size * 0.15, size * 0.15, size * 0.7, size * 0.7);
+  const imageData = context.getImageData(0, 0, size, size);
+  desaturateImageData(imageData.data, 0.6);
+  context.putImageData(imageData, 0, 0);
   context.restore();
 
   context.strokeStyle = '#5f6368';
@@ -237,6 +240,21 @@ async function blobToDataUrl(blob) {
     binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
   }
   return `data:${blob.type || 'application/octet-stream'};base64,${btoa(binary)}`;
+}
+
+function desaturateImageData(data, opacity) {
+  for (let offset = 0; offset < data.length; offset += 4) {
+    const luminance = Math.round(
+      data[offset] * 0.299 +
+      data[offset + 1] * 0.587 +
+      data[offset + 2] * 0.114
+    );
+    data[offset] = luminance;
+    data[offset + 1] = luminance;
+    data[offset + 2] = luminance;
+    data[offset + 3] = Math.round(data[offset + 3] * opacity);
+  }
+  return data;
 }
 
 function executeMarkerScript(tabId, faviconDataUrl) {
@@ -360,6 +378,7 @@ if (typeof module !== 'undefined' && module.exports) {
     isNewTab,
     isActiveTab,
     isDiscarded,
-    discardAllTabs
+    discardAllTabs,
+    desaturateImageData
   };
 }

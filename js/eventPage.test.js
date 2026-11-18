@@ -71,7 +71,8 @@ const {
   isSpecialTab,
   isNewTab,
   discardAllTabs,
-  isDiscarded
+  isDiscarded,
+  desaturateImageData
 } = require('./eventPage.js');
 
 test('isSpecialTab edge cases', async (t) => {
@@ -206,6 +207,14 @@ test('discardAllTabs continues when one discard reports an error', async () => {
 
   assert.deepStrictEqual(discardedTabs, [30, 31]);
   discardErrorMessage = null;
+});
+
+test('desaturateImageData converts color pixels to dimmed grayscale', () => {
+  const pixelData = new Uint8ClampedArray([255, 0, 0, 200, 20, 80, 140, 255]);
+
+  const result = desaturateImageData(pixelData, 0.6);
+
+  assert.deepStrictEqual(Array.from(result), [76, 76, 76, 120, 69, 69, 69, 153]);
 });
 
 test('isNewTab', async (t) => {
